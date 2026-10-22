@@ -245,7 +245,7 @@ Last verified in this environment (Windows 11, Electron 44.7.0, Ollama 0.40.8,
 models `gemma4:12b` and `qwen3.8:27b`):
 
 - `npm run typecheck`: **pass** (strict, no errors).
-- `npm test`: **36 tests pass** across unit, integration and security suites.
+- `npm test`: **38 tests pass** across unit, integration and security suites.
 - Production build: **pass** (main 1.1 MB, preload 7.4 KB, renderer ~14.5 MB — the
   renderer is large because Monaco workers are bundled inline for offline
   `file://` use).

@@ -59,6 +59,8 @@ With a deterministic in-process provider:
 - tool-call limit stops before the extra call,
 - repeated failures stop the run,
 - safe command auto-runs and its real output is captured,
+- reads a real file and returns its content to the model,
+- invalid tool arguments rejected before execution,
 - invalid task transitions rejected.
 
 ### Security — permissions (`tests/security/permissions.test.ts`)
@@ -78,7 +80,7 @@ With a deterministic in-process provider:
 | Check | Result |
 | --- | --- |
 | `npm run typecheck` | pass |
-| `npm test` | 36 tests, 5 files — pass |
+| `npm test` | 38 tests, 5 files — pass |
 | `npm run build` | pass |
 | `npm run test:e2e` | pass |
 | `npm run test:e2e:permissions` | pass |

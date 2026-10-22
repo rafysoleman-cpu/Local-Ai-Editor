@@ -247,6 +247,61 @@ describe('agent runtime', () => {
     expect(assistant?.toolCalls[0].result).toContain('agent_runtime_ok');
   });
 
+  it('reads a real file through a tool and returns its content to the model', async () => {
+    const data = await setup();
+    await data.backend.tasks.createPlan({
+      projectId: data.project.id,
+      chatId: data.chat.id,
+      title: 'Read plan',
+      tasks: [{ title: 'Read the readme' }],
+      approve: true,
+    });
+    await fs.writeFile(path.join(data.project.workspacePath, 'notes.txt'), 'REAL_FILE_CONTENT_7d2', 'utf8');
+    data.provider.queueToolCalls([{ name: 'read_file', arguments: { relativePath: 'notes.txt' } }]);
+    data.provider.queueText('I read the file.');
+    const finished = await run(data, 'Read notes.txt', 'build');
+    expect(finished.type).toBe('run_finished');
+
+    const messages = await data.backend.chats.messages(data.project.id, data.chat.id);
+    const toolCall = messages.flatMap((message) => message.toolCalls).find((call) => call.name === 'read_file');
+    expect(toolCall?.status).toBe('success');
+    expect(toolCall?.result).toContain('REAL_FILE_CONTENT_7d2');
+
+    const secondRequest = data.provider.requests[1];
+    const toolMessage = secondRequest?.messages.find((message) => message.role === 'tool');
+    expect(toolMessage?.content).toContain('REAL_FILE_CONTENT_7d2');
+  });
+
+  it('rejects invalid tool arguments before execution', async () => {
+    const data = await setup();
+    const outcome = await data.backend.executor.execute({
+      call: { id: 'call_invalid', name: 'write_file', arguments: { relativePath: 'x.ts' } },
+      ctx: {
+        project: data.project,
+        chat: data.chat,
+        mode: 'build',
+        runId: 'run_test',
+        settings: data.backend.settings.get(),
+        signal: new AbortController().signal,
+        services: {
+          workspace: data.backend.workspace,
+          projects: data.backend.projects,
+          chats: data.backend.chats,
+          tasks: data.backend.tasks,
+          memory: data.backend.memory,
+          commands: data.backend.commands,
+          git: data.backend.git,
+        },
+        invalidateContext: () => undefined,
+      },
+      settings: data.backend.settings.get(),
+    });
+    expect(outcome.ok).toBe(false);
+    expect(outcome.record.status).toBe('error');
+    expect(outcome.modelContent).toMatch(/invalid/i);
+    await expect(fs.stat(path.join(data.project.workspacePath, 'x.ts'))).rejects.toThrow();
+  });
+
   it('rejects invalid task transitions and completion without evidence', async () => {
     const data = await setup();
     const created = await data.backend.tasks.createPlan({
