@@ -87,6 +87,19 @@ export default function App() {
           break;
         case 'n':
           event.preventDefault();
+          // Do not create a chat while the user is typing in a field or a dialog
+          // is open; Monaco is the exception because Ctrl+N is a global action.
+          {
+            const target = event.target as HTMLElement | null;
+            const typing =
+              target &&
+              (target.tagName === 'INPUT' ||
+                target.tagName === 'TEXTAREA' ||
+                target.isContentEditable);
+            if (document.querySelector('.modal') || (typing && !target.closest('.monaco-editor'))) {
+              break;
+            }
+          }
           if (state.project) {
             void state
               .createChat(state.chat?.mode ?? state.draftMode)
