@@ -1,0 +1,16 @@
+node_modules/
+dist/
+dist-electron/
+release/
+.npm-cache/
+.tmp/
+.electron-cache/
+.electron-builder-cache/
+.laie-dev/
+test-results/
+playwright-report/
+*.log
+.env
+.DS_Store
+Thumbs.db
+coverage/
